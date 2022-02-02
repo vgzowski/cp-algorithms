@@ -1,0 +1,32 @@
+inoremap {<CR>  {<CR>}<Esc>O
+autocmd filetype cpp nnoremap <F1> :w <bar> !g++ -O2 -std=c++17 -Wall -Wextra -Wno-sign-compare -Wl,--stack=268435456 -DLOCAL % -o C:/Users/Lenovo/C/EXEs/%<<CR>
+autocmd filetype cpp nnoremap <F2> :!C:/Users/Lenovo/C/EXEs/%<<CR>
+autocmd filetype cpp nnoremap <F3> :!C:/Users/Lenovo/C/EXEs/%< < in<CR>
+autocmd filetype cpp nnoremap <F4> :!C:/Users/Lenovo/C/EXEs/%< < in > out<CR>
+autocmd filetype cpp nnoremap <F9> :w <bar> !g++ -O2 -std=c++17 -Wall -Wextra -Wno-sign-compare -Wl,--stack=268435456 -DLOCAL % -o %<<CR>
+autocmd filetype cpp nnoremap <F10> :!%<<CR>
+
+nnoremap cf :cd ~/C/cf<CR>
+nnoremap dl :cd ~/C/dl<CR>
+nnoremap hm :cd ~
+
+vmap <C-c> "*y
+nmap <C-a> ggVG
+imap <C-v> <Esc>"*p
+syntax on
+set number
+set smarttab
+set autoread
+set autoindent
+set smartindent
+set relativenumber
+set backspace=indent,eol,start
+nnoremap tp ggVGd<Esc>:-1read ~/C/template.cpp<CR> ggd<Esc> Gdd<Esc> gg<Esc>:w<CR>
+nnoremap tb ggVGd<Esc>:-1read ~/C/templateBrut.cpp<CR> ggd<Esc> Gdd<Esc> gg<Esc>:w<CR>
+nnoremap fi <C-W>v<C-W>r<Esc>:e! in<CR><Esc>:w<CR><Esc><C-W>s<C-w>r<Esc>:e! out<CR><Esc>:w<CR><Esc>
+
+colorscheme dark_purple
+
+set langmenu=en_US.UTF-8
+language en
+set guifont=Lucida_Console:h10:cANSI
