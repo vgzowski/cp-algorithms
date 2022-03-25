@@ -1,31 +1,29 @@
-const int N = 5e5 + 5; int m = 300;
-int p[N], p2[N], c[N], c2[N], cnt[N], lcp[N];
+#include <bits/stdc++.h>
+using namespace std;
+inline void solve() {
+	string s; cin >> s; s += '$'; int n = s.size();
+	vector <int> p(n), p2(n), c(n), c2(n), pos(n), lcp(n);
 
-res += '$'; /// our initial string
-n = res.size();
-for (auto i : res) ++cnt[i];
-for (int i = 1; i < m; ++i) cnt[i] += cnt[i - 1];
-for (int i = n - 1; ~i; --i) p[--cnt[res[i]]] = i;
-for (int i = 1; i < n; ++i) c[p[i]] = c[p[i - 1]] + (res[p[i]] != res[p[i - 1]]);
-
-for (int l = 1; l < n; l <<= 1) {
-  memset(cnt, 0, 4 * m);
-  for (int i = 0; i < n; ++i) { p[i] -= l; if (p[i] < 0) p[i] += n; }
-  for (int i = 0; i < n; ++i) ++cnt[c[i]];
-  for (int i = 1; i < m; ++i) cnt[i] += cnt[i - 1];
-  for (int i = n - 1; ~i; --i) p2[--cnt[c[p[i]]]] = p[i];
-  memcpy(p, p2, 4 * n);
-  m = 1, c2[p[0]] = 0;
-  for (int i = 1; i < n; ++i) {
-    if (c[p[i]] != c[p[i - 1]] ||
-        c[(p[i] + l) % n] != c[(p[i - 1] + l) % n]) ++m;
-    c2[p[i]] = m - 1;
-  }
-  memcpy(c, c2, 4 * n);
-  if (m == n) break;
-}
-for (int i = 0, k = 0; i < n - 1; ++i) {
-  int j = p[c[i] - 1];
-  while (res[i + k] == res[j + k]) ++k;
-  lcp[c[i]] = k; if (k) --k;
+	vector < pair <char, int> > a(n);
+	for (int i = 0; i < n; ++i) a[i] = {s[i], i};
+	sort(a.begin(), a.end()); for (int i = 0; i < n; ++i) p[i] = a[i].second;
+	for (int i = 1; i < n; ++i) { c[p[i]] = c[p[i - 1]]; if (s[p[i]] != s[p[i - 1]]) pos[++c[p[i]]] = i; }
+	for (int l = 1; l < n; l <<= 1) {
+		for (int i = 0; i < n; ++i) {
+			int j = p[i] - l; if (j < 0) j += n;
+			p2[pos[c[j]]++] = j;
+		} p.swap(p2); c2[p[0]] = 0, pos[0] = 0;
+		for (int i = 1; i < n; ++i) {
+			c2[p[i]] = c2[p[i - 1]];
+			if (c[p[i]] != c[p[i - 1]] || c[(p[i] + l) % n] != c[(p[i - 1] + l) % n]) {
+				pos[++c2[p[i]]] = i;
+			}
+		} c.swap(c2);
+	}
+	for (int i = 0, k = 0; i < n - 1; ++i) {
+		int j = p[c[i] - 1];
+		while (s[i + k] == s[j + k]) ++k;
+		lcp[c[i]] = k; if (k) --k;
+	}
+	for (int i = 0; i < n; ++i) cout << p[i] << " " << s.substr(p[i], n - p[i]) << " " << lcp[i] << '\n';
 }
