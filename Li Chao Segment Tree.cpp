@@ -30,8 +30,9 @@ inline ll get(int v, int l, int r, ll x) {
 
 /// Implicit Li Chao
 struct line {
-	ll k = 0, b = 0;
-	line(ll k = 0, ll b = inf) : k(k), b(b) {}
+	ll k, b;
+	line() : k(0), b(-inf) {}
+	line(ll k, ll b) : k(k), b(b) {}
 	inline ll operator()(const ll &x) { return k * x + b; }
 };
 struct node {
@@ -39,30 +40,25 @@ struct node {
 	node *r = nullptr;
 	line f;
 	node() {}
+	node(line f) : f(f) {}
 };
-inline void upd(node *v, int l, int r, line f) {
-	if (l + 1 == r) { v->f = (v->f(l) < f(l) ? v->f : f); return; }
-	int m = l + r >> 1;
-	if (!v->l) v->l = new node();
-	if (!v->r) v->r = new node();
-	bool le = (f(l) < v->f(l));
-	bool me = (f(m) < v->f(m));
-	if (me) swap(v->f, f);
+inline void upd(node *&v, ll l, ll r, line f) {
+	if (!v) return void(v = new node(f));
+	if (l == r) return void(v->f = (f(l) > v->f(l) ? f : v->f));
+	ll m = l + r >> 1;
+	bool le = f(l) > v->f(l);
+	bool me = f(m) > v->f(m);
+	if (me) swap(f, v->f);
 	if (le != me) upd(v->l, l, m, f);
-	else upd(v->r, m, r, f);
+	else upd(v->r, m + 1, r, f);
 }
-inline ll get(node *v, int l, int r, ll x) {
-	ll res = v->f(x);
-	if (l + 1 == r) return res;
-	int m = l + r >> 1;
-	if (x < m) {
-		if (v->l) return min(res, get(v->l, l, m, x));
-		else return res;
-	}
-	else {
-		if (v->r) return min(res, get(v->r, m, r, x));
-		else return res;
-	}
+inline ll get(node *v, ll l, ll r, ll x) {
+	if (!v) return -inf;
+	ll re = v->f(x);
+	if (l == r) return re;
+	ll m = l + r >> 1;
+	if (x <= m) return max(re, get(v->l, l, m, x));
+	else return max(re, get(v->r, m + 1, r, x));
 }
 
 /*
