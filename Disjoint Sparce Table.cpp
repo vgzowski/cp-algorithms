@@ -1,3 +1,5 @@
+/* Task and submition on https://www.codechef.com/viewsolution/70327809 */
+
 /* --- Recursive Segment-tree-style --- */
 /* --- Find (a[l] * a[l + 1] * ... * a[r]) % md --- */
 const int N = (1 << 20);
@@ -16,14 +18,6 @@ inline int get(int l, int r) {
 	if (l == r) return a[l];
 	int p = 32 - __builtin_clz(l ^ r); // technicaly (l + sz) ^ (r + sz), but l, r < sz
 	return mul(ans[p][l], ans[p][r]);
-}
-
-inline void solve() {
-	cin >> n >> md;
-	for (int i = 0; i < n; ++i) cin >> a[i];
-	if (n & (n - 1)) { n = 1 << (32 - __builtin_clz(n)); }
-	L = 31 - __builtin_clz(n); // max level of recursion
-	build(1, 0, n - 1, 0, 0);
 }
 // input
 void input() {
