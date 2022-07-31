@@ -83,6 +83,14 @@ inline int discrete_log(int a, int b) {
 	return -1;
 }
 
+/**
+big modulos
+constexpr ll md = (ll)1e16 + 61;
+inline ll add(ll a, ll b) { a += b; if (a >= md){a-=md;} return a; }
+inline ll sub(ll a, ll b) { a -= b; if (a < 0){a+=md;} return a; }
+inline ll mul(ll a, ll b) { ll q=(ld)a*(ld)b/(ld)md;ll r=a*b-q*md;if(r<0){r+=md;}if(r>=md){r-=md;} return r; }
+*/
+
 inline void solve() {
 	mt19937_64 rnd(264463);
 
