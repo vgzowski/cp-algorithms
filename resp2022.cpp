@@ -1,3 +1,250 @@
+/// Bad Dlinka
+class BigInt {
+private:
+    static const int base = 1e9;
+    static const int len = 9;
+    bool sgn; // 1 - pos, 0 - neg
+
+    vector <int> dig;
+
+    void normalize();
+    BigInt babs() const {
+        return sgn ? *this : -*this;
+    };
+public:
+    BigInt() {}
+    BigInt(const int &);
+    BigInt(const string &);
+
+    bool operator < (const BigInt &) const;
+    bool operator == (const BigInt &) const;
+    friend istream & operator >> (istream &, BigInt &);
+    friend ostream & operator << (ostream &, const BigInt &);
+
+    BigInt operator + (const BigInt &) const;
+    BigInt& operator++ (int);
+
+    BigInt operator * (const BigInt &) const;
+    BigInt operator * (const int &) const;
+
+    friend BigInt operator - (const BigInt &);
+    BigInt operator - (const BigInt &) const;
+
+    BigInt operator / (const int &) const;
+    int operator % (const int &) const;
+};
+
+BigInt::BigInt(const int &x) {
+    sgn = (x >= 0 ? 1 : 0);
+    int r = abs(x);
+
+    while (r) {
+        dig.push_back(r % base);
+        r /= base;
+    }
+}
+BigInt::BigInt(const string &s) {
+    int pos = 0;
+    sgn = 1;
+    if (s[0] == '-') {
+        sgn = 0;
+        pos = 1;
+    }
+    for (int i = (int)s.size() - len; i >= pos; i -= len)
+        dig.push_back(stoi(s.substr(i, len)));
+    if (((int)s.size() - pos) % len != 0)
+        dig.push_back(stoi(s.substr(pos, ((int)s.size() - pos) % len)));
+}
+BigInt operator - (const BigInt &a) {
+    BigInt res = a;
+    res.sgn ^= 1;
+    return res;
+}
+void BigInt::normalize() {
+    for (int i = 0; i < dig.size(); ++i) {
+        if (dig[i] >= base) {
+            int r = dig[i] / base;
+            dig[i] %= base;
+
+            if (i + 1 == dig.size())
+                dig.push_back(0);
+            dig[i + 1] += r;
+        }
+        if (dig[i] < 0) {
+            dig[i] += base;
+            --dig[i + 1];
+        }
+    }
+    while (dig.size() > 1 && dig[dig.size() - 1] == 0)
+        dig.pop_back();
+    if (dig.size() == 1 && dig[0] == 0)
+        sgn = 1;
+}
+
+bool BigInt::operator < (const BigInt &a) const {
+    if (!sgn && a.sgn)
+        return true;
+    else if (sgn && !a.sgn)
+        return false;
+
+    const bool change = (sgn == 0);
+
+    if (dig.size() < a.dig.size())
+        return true ^ change;
+    else if (dig.size() > a.dig.size())
+        return false ^ change;
+    else {
+        for (int i = (int)dig.size() - 1; i >= 0; --i) {
+            if (dig[i] < a.dig[i])
+                return true ^ change;
+            else if (dig[i] > a.dig[i])
+                return false ^ change;
+        }
+    }
+    return false;
+}
+bool BigInt::operator == (const BigInt &a) const {
+    if (sgn != a.sgn || dig.size() != a.dig.size())
+        return false;
+    for (int i = 0; i < dig.size(); ++i) {
+        if (dig[i] != a.dig[i])
+            return false;
+    }
+    return true;
+}
+
+istream & operator >> (istream &in, BigInt &a) {
+    string s;
+    in >> s;
+    a = BigInt(s);
+    return in;
+}
+ostream & operator << (ostream &out, const BigInt &a) {
+    if (a.dig.empty()) {
+        out << 0;
+        return out;
+    }
+
+    if (!a.sgn)
+        out << '-';
+
+    out << a.dig.back();
+
+    out.fill('0');
+    for (int i = (int)a.dig.size() - 2; i >= 0; --i) {
+        out << setw(a.len) << a.dig[i];
+    }
+    return out;
+}
+
+BigInt& BigInt::operator ++ (int) {
+    if (*this == BigInt(0)) {
+        *this = BigInt(1);
+        return *this;
+    }
+    if (sgn == 1) {
+        ++dig[0];
+        normalize();
+        return *this;
+    }
+    else {
+        --dig[0];
+        normalize();
+        return *this;
+    }
+}
+BigInt BigInt::operator + (const BigInt &a) const {
+    if (a == BigInt(0))
+        return *this;
+    if (sgn == a.sgn) {
+        BigInt res = *this;
+        res.dig.resize(max(dig.size(), a.dig.size()) + 1);
+
+        for (int i = 0; i < a.dig.size(); ++i) {
+            res.dig[i] += a.dig[i];
+        }
+        res.normalize();
+        return res;
+    }
+    else {
+        return *this - (-a);
+    }
+}
+BigInt BigInt::operator - (const BigInt &a) const {
+    if (a == BigInt(0))
+        return *this;
+    if (*this == a)
+        return BigInt(0);
+    if (sgn == a.sgn) {
+        if (babs() < a.babs()) {
+            BigInt res = a - *this;
+            res.sgn = a.sgn ^ 1;
+            return res;
+        }
+        else {
+            BigInt res = *this;
+            res.sgn = sgn;
+            for (int i = 0; i < a.dig.size(); ++i) {
+                res.dig[i] -= a.dig[i];
+            }
+            res.normalize();
+            return res;
+        }
+    }
+    else {
+        return *this + (-a);
+    }
+}
+
+BigInt BigInt::operator * (const BigInt &a) const {
+    if (a == BigInt(0) || *this == BigInt(0))
+        return BigInt(0);
+
+    BigInt res;
+    res.sgn = !((!sgn) ^ (!a.sgn));
+    res.dig.resize(dig.size() + a.dig.size());
+
+    for (int i = 0; i < dig.size(); ++i) {
+        for (int j = 0; j < a.dig.size(); ++j) {
+            long long f = dig[i] * 1ll * a.dig[j] + res.dig[i + j];
+            res.dig[i + j] = f % base;
+            res.dig[i + j + 1] += f / base;
+        }
+    }
+    res.normalize();
+    return res;
+}
+BigInt BigInt::operator / (const int &x) const {
+    BigInt res;
+    res.sgn = sgn;
+    res.dig.resize(dig.size());
+    if (x < 0)
+        res.sgn ^= 1;
+
+    int X = abs(x), carry = 0;
+    for (int i = (int)dig.size() - 1; i >= 0; --i) {
+        long long cur = base * 1ll * carry + dig[i];
+        res.dig[i] = cur / X;
+        carry = cur % X;
+    }
+    res.normalize();
+    if (res.sgn == 0 && carry > 0)
+        res = res - BigInt(1);
+    return res;
+}
+int BigInt::operator % (const int &x) const {
+    bool Sgn = !((!sgn) ^ (x < 0));
+
+    int X = abs(x), carry = 0;
+    for (int i = dig.size() - 1; i >= 0; --i) {
+        long long cur = base * 1ll * carry + dig[i];
+        carry = cur % X;
+    }
+    if (Sgn == 0)
+        carry = (X - carry) % X;
+    return carry;
+}
+
 /// 1_1
 #include <bits/stdc++.h>
 #define ll long long
