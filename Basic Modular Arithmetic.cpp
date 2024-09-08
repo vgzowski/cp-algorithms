@@ -118,3 +118,193 @@ inline void solve() {
 
 	for (int i = 1; i <= n; ++i) cout << i << " * " << inv[i] << " = 1 (mod " << md << ")" << '\n';
 }
+
+
+
+
+
+
+
+
+
+
+
+// ------------------------------------------------
+// Multiple base hahs
+// 15 primes
+constexpr long long md[] = {10000000000000061, 10000000000000069, 10000000000000079, 10000000000000099, 10000000000000453, 10000000000000481, 10000000000000597, 10000000000000613, 10000000000000639, 10000000000000669, 10000000000000753, 10000000000000793, 10000000000000819, 10000000000000861, 10000000000000897};
+
+constexpr int p = 1e9+9;
+
+//constexpr int sz = sizeof(md) / sizeof(long long);
+constexpr int sz = 2;
+
+template <int ID>
+inline long long add(long long a, long long b) {
+	return a + b >= md[ID] ? a + b - md[ID] : a + b;
+}
+template <int ID>
+inline void sadd(long long &a, long long b) {
+	a += b;
+	if (a >= md[ID]) {
+		a -= md[ID];
+	}
+}
+
+template <int ID>
+inline long long sub(long long a, long long b) {
+	return a - b < 0 ? a - b + md[ID] : a - b;
+}
+template <int ID>
+inline void ssub(long long &a, long long b) {
+	a -= b;
+	if (a < 0) {
+		a += md[ID];
+	}
+}
+
+template <int ID>
+inline long long mul(long long a, long long b) {
+	long long q = (long double)a * b / md[ID];
+	long long r = (a * b - q * md[ID]) % md[ID];
+	if (r < 0) r += md[ID];
+	return r;
+}
+template <int ID>
+inline void smul(long long &a, long long b) {
+	a = mul <ID> (a, b);
+}
+
+template <int ID>
+inline long long bp(long long a, long long n) {
+	long long res = 1;
+	while (n) {
+		if (n & 1) {
+			smul <ID> (res, a);
+		}
+		smul <ID> (a, a);
+		n >>= 1;
+	}
+	return res;
+}
+
+template <int ID>
+inline long long inv(long long a) {
+	return bp <ID> (a, md[ID] - 2);
+}
+
+class number_hash {
+public:
+	long long rem[sz];
+	number_hash(long long number = 0) {
+		for (int i = 0; i < sz; ++i) {
+			rem[i] = number;
+			if (number < 0) {
+				rem[i] += md[i];
+			}
+		}
+	}
+
+	inline number_hash & operator += (const number_hash &other) {
+		this->template add_ <0> (other);
+		return *this;
+	}
+	inline number_hash & operator -= (const number_hash &other) {
+		this->template sub_ <0> (other);
+		return *this;
+	}
+	inline number_hash & operator *= (const number_hash &other) {
+		this->template mul_ <0> (other);
+		return *this;
+	}
+
+	inline number_hash operator + (const number_hash & other) const {
+		auto copy = *this;
+		return copy += other;
+	}
+	inline number_hash operator - (const number_hash & other) const {
+		auto copy = *this;
+		return copy -= other;
+	}
+	inline number_hash operator * (const number_hash & other) const {
+		auto copy = *this;
+		return copy *= other;
+	}
+
+	inline bool operator == (const number_hash & other) const {
+		for (int i = 0; i < sz; ++i) {
+			if (rem[i] != other.rem[i]) {
+				return false;
+			}
+		}
+		return true;
+	}
+	inline bool operator < (const number_hash & other) const {
+		for (int i = 0; i < sz; ++i) {
+			if (rem[i] != other.rem[i]) {
+				return rem[i] < other.rem[i];
+			}
+		}
+		return false;
+	}
+
+	template <int I = 0>
+	inline void to_inv() {
+		rem[I] = inv <I> (rem[I]);
+		if constexpr (I+1 < sz) {
+			this->template to_inv <I + 1> ();
+		}
+	}
+
+	inline number_hash new_inv() const {
+		auto copy = *this;
+		copy.template to_inv <0> ();
+		return copy;
+	}
+private:
+	template <int I = 0>
+	inline void add_(const number_hash & other) {
+		sadd <I> (rem[I], other.rem[I]);
+		if constexpr (I+1 < sz) {
+			this->template add_ <I+1> (other);
+		}
+	}
+	template <int I = 0>
+	inline void sub_(const number_hash & other) {
+		ssub <I> (rem[I], other.rem[I]);
+		if constexpr (I+1 < sz) {
+			this->template sub_ <I+1> (other);
+		}
+	}
+	template <int I = 0>
+	inline void mul_(const number_hash & other) {
+		smul <I> (rem[I], other.rem[I]);
+		if constexpr (I+1 < sz) {
+			this->template mul_ <I+1> (other);
+		}
+	}
+};
+
+const int N = 2.5e5 + 10;
+const int ZERO = N + 10;
+
+number_hash pw_[2 * N + 30];
+
+inline void precalc() {
+	pw_[ZERO] = number_hash(1);
+
+	number_hash P(p);
+
+	for (int i = 1; i < N; ++i) {
+		pw_[ZERO + i] = pw_[ZERO + i - 1] * P;
+	}
+
+	number_hash iP = P.new_inv();
+	for (int i = 1; i < N; ++i) {
+		pw_[ZERO - i] = pw_[ZERO - i + 1] * iP;
+	}
+}
+
+inline number_hash & pw(int ind) {
+	return pw_[ZERO + ind];
+}
